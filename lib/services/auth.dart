@@ -1,13 +1,13 @@
-import 'package:firebase_core/firebase_core.dart';
-import "package:cloud_firestore/cloud_firestore.dart";
-import 'package:firebase_auth/firebase_auth.dart';
 
-class AuthServices{
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+class AuthServices {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // SignUp User
-
   Future<String> signupUser({
     required String email,
     required String password,
@@ -15,16 +15,13 @@ class AuthServices{
   }) async {
     String res = "Some error Occurred";
     try {
-      if (email.isNotEmpty ||
-          password.isNotEmpty ||
-          name.isNotEmpty) {
+      if (email.isNotEmpty || password.isNotEmpty || name.isNotEmpty) {
         // register user in auth with email and password
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
-        // add user to your  firestore database
-        print(cred.user!.uid);
+        // add user to firestore database
         await _firestore.collection("users").doc(cred.user!.uid).set({
           'name': name,
           'uid': cred.user!.uid,
@@ -47,7 +44,6 @@ class AuthServices{
     String res = "Some error Occurred";
     try {
       if (email.isNotEmpty || password.isNotEmpty) {
-        // logging in user with email and password
         await _auth.signInWithEmailAndPassword(
           email: email,
           password: password,
@@ -63,9 +59,7 @@ class AuthServices{
   }
 
   // for signout
-  signOut() async {
-    // await _auth.signOut();
+  Future<void> signOut() async {
+    await _auth.signOut();
   }
-
-
 }

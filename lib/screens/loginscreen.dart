@@ -3,28 +3,36 @@ import 'package:travel/screens/home_screen.dart';
 import 'package:travel/screens/sign_up.dart';
 import 'package:travel/widgets/button.dart';
 import 'package:travel/widgets/text_field.dart';
-
 import '../services/auth.dart';
 import '../widgets/snack_bar.dart';
 
-class LoginScreen extends StatefulWidget{
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState()=> _SignupScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
-class _SignupScreenState extends State<LoginScreen>{
-  //for controller
+
+class _LoginScreenState extends State<LoginScreen> {
+  // Controllers for the text fields
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   bool isLoading = false;
+  bool isDarkMode = false; // Variable to track theme mode
 
   @override
-  void despose(){
-    super.dispose();
+  void dispose() {
     emailController.dispose();
     passwordController.dispose();
+    super.dispose();
+  }
+
+  // Function to toggle between dark and light mode
+  void toggleTheme(bool isDark) {
+    setState(() {
+      isDarkMode = isDark;
+    });
   }
 
   void loginUser() async {
@@ -32,79 +40,101 @@ class _SignupScreenState extends State<LoginScreen>{
       email: emailController.text,
       password: passwordController.text,
     );
-    //if signup then success else err
-    if(res=="success"){
+
+    if (res == "success") {
       setState(() {
-        isLoading=true;
+        isLoading = true;
       });
-      //navigate to next string
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()));
-    }
-    else{
+      // Navigate to HomeScreen with the dark mode parameters
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HomeScreen(
+            toggleTheme: toggleTheme, // Pass the toggle function
+            isDarkMode: isDarkMode,   // Pass the current theme mode
+          ),
+        ),
+      );
+    } else {
       setState(() {
-        isLoading=false;
+        isLoading = false;
       });
       showSnackBar(context, res);
     }
   }
 
   @override
-  Widget build (BuildContext context ){
-    double height= MediaQuery.of(context).size.height;
+  Widget build(BuildContext context) {
+    double height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: double.infinity,
-              height: height/2.7,
-              child: Image.asset('assets/images/login.jpg'),
-            ),
-            TextFieldInpute(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: height / 2.7,
+                child: Image.asset('assets/images/login.jpg'),
+              ),
+              TextFieldInpute(
                 textEditingController: emailController,
                 hintText: "Enter Your Email",
                 icon: Icons.email,
-            ),
-            TextFieldInpute(
-              textEditingController: passwordController,
-              hintText: "Enter Your Password",
-              isPass: true,
-              icon: Icons.lock,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 35,),
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: Text("Forgot Password?",
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Colors.blue
-                ),),),
-            ),
-            MyButton(onTap: loginUser, text: "Log In"),
-            SizedBox(height: height/15,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Don't have an Account ?", style: TextStyle(fontSize: 16),),
-                GestureDetector(onTap: (){
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SignUpScreen(),
-                      )
-                    );
-                },
-                  child: Text(" SignUp", style: TextStyle(fontWeight: FontWeight.bold,fontSize: 16),),
-                )
-              ],
-            )
-          ],
+              ),
+              TextFieldInpute(
+                textEditingController: passwordController,
+                hintText: "Enter Your Password",
+                isPass: true,
+                icon: Icons.lock,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 35),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "Forgot Password?",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+              ),
+              MyButton(onTap: loginUser, text: "Log In"),
+              SizedBox(height: height / 15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Don't have an Account ?",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignUpScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      " SignUp",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 }
