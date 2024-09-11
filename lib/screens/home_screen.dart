@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:travel/screens/settings.dart'; // Import the settings screen
+import 'package:travel/screens/settings.dart';
+
+import 'edit_profile.dart'; // Import the settings screen
 
 class HomeScreen extends StatefulWidget {
   final Function(bool) toggleTheme; // Function to toggle the theme
@@ -95,6 +97,10 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text('Edit Profile'),
               onTap: () {
                 // Navigate to edit profile page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EditProfileScreen()),
+                );
               },
             ),
             ListTile(
