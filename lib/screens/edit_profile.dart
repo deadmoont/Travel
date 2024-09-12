@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../services/auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditProfileScreen extends StatefulWidget {
   @override
@@ -19,6 +21,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String? _email; // Editable field for email
   String? _address; // Editable field for permanent address
   String? _mobile; // Editable field for mobile number
+  String? _profileImage; // URL for the profile image in Firebase Storage
 
   @override
   void initState() {
@@ -32,8 +35,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() {
       _name = _userData?['name'];
       _email = _userData?['email'];
-      _address = _userData?['address'] ?? ''; // Handle missing fields
-      _mobile = _userData?['mobile'] ?? ''; // Handle missing fields
+      _address = _userData?['address'] ?? '';
+      _mobile = _userData?['mobile'] ?? '';
+      _profileImage = _userData?['profileImage']; // Fetch profile image URL
       _isLoading = false; // Stop loading after user data is loaded
     });
   }
@@ -49,35 +53,73 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  // Method to save profile image using AuthServices
+  // Save profile image only if one is picked (optional)
   Future<void> _saveProfileImage() async {
     if (_image != null) {
-      await _authServices.uploadProfileImage(_image!);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile Image Updated!')),
-      );
-      // Reload user data after profile image update
-      _loadUserData();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select an image!')),
-      );
+      try {
+        // Fetch current user ID
+        String? userId = _authServices.getCurrentUserId();
+        if (userId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User not logged in!')),
+          );
+          return;
+        }
+
+        // Define storage reference for the profile image
+        Reference storageReference = FirebaseStorage.instance
+            .ref()
+            .child('profile_images/$userId.jpg');
+
+        // Upload the file to Firebase Storage
+        UploadTask uploadTask = storageReference.putFile(_image!);
+
+        // Await task completion and get the download URL
+        TaskSnapshot taskSnapshot = await uploadTask;
+        String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+
+        // Update Firestore with the image URL
+        await _authServices.updateUserProfile({'profileImage': downloadUrl});
+
+        // Update local profile image URL
+        setState(() {
+          _profileImage = downloadUrl;
+        });
+      } catch (e) {
+        print('Error saving profile image: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error uploading image: $e')),
+        );
+      }
     }
   }
 
-  // Method to save user profile information
-  Future<void> _saveProfileInfo() async {
+  // Method to save profile information to Firestore
+  Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      await _authServices.updateUserProfile({
+      _formKey.currentState!.save(); // Save form data
+      Map<String, dynamic> updatedProfile = {
         'name': _name,
         'email': _email,
         'address': _address,
         'mobile': _mobile,
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile Updated!')),
-      );
+      };
+
+      // If profile image is updated, save it as well
+      await _saveProfileImage();
+
+      // Save the updated profile to Firestore
+      try {
+        await _authServices.updateUserProfile(updatedProfile);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully!')),
+        );
+      } catch (e) {
+        print('Error saving profile: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving profile: $e')),
+        );
+      }
     }
   }
 
@@ -86,6 +128,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
+        backgroundColor: Colors.blueAccent,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator()) // Show loading indicator
@@ -100,88 +143,106 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Stack(
                   children: [
                     CircleAvatar(
-                      radius: 50,
-                      backgroundImage: _image != null
-                          ? FileImage(_image!) // Show selected image
-                          : _userData?['profileImageUrl'] != null
-                          ? NetworkImage(_userData!['profileImageUrl'])
-                          : null,
-                      child: _image == null && _userData?['profileImageUrl'] == null
-                          ? const Icon(Icons.add_a_photo, size: 50)
-                          : null, // Show default icon if no image selected
+                      radius: 60,
+                      backgroundColor: Colors.grey[300], // Grey border around image
+                      child: CircleAvatar(
+                        radius: 55,
+                        backgroundImage: _image != null
+                            ? FileImage(_image!) // Show selected image
+                            : _profileImage != null
+                            ? NetworkImage(_profileImage!)
+                            : const AssetImage('assets/default_user.png') as ImageProvider, // Default image if none selected
+                      ),
                     ),
                     Positioned(
                       bottom: 0,
                       right: 0,
-                      child: IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.white),
-                        onPressed: _pickImage, // Allow user to tap and select an image
+                      child: GestureDetector(
+                        onTap: _pickImage, // Allow user to tap and select an image
+                        child: CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.blueAccent, // Edit button style
+                          child: const Icon(Icons.camera_alt, color: Colors.white),
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
                 // Name field
-                TextFormField(
+                _buildProfileField(
+                  label: 'Name',
                   initialValue: _name,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                  onSaved: (newValue) {
-                    _name = newValue;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
+                  icon: Icons.person,
+                  onSaved: (value) => _name = value,
                 ),
                 const SizedBox(height: 10),
                 // Email field
-                TextFormField(
+                _buildProfileField(
+                  label: 'Email',
                   initialValue: _email,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  onSaved: (newValue) {
-                    _email = newValue;
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    return null;
-                  },
+                  icon: Icons.email,
+                  onSaved: (value) => _email = value,
                 ),
                 const SizedBox(height: 10),
                 // Address field
-                TextFormField(
+                _buildProfileField(
+                  label: 'Permanent Address',
                   initialValue: _address,
-                  decoration: const InputDecoration(labelText: 'Permanent Address'),
-                  onSaved: (newValue) {
-                    _address = newValue;
-                  },
+                  icon: Icons.location_on,
+                  onSaved: (value) => _address = value,
                 ),
                 const SizedBox(height: 10),
                 // Mobile number field
-                TextFormField(
+                _buildProfileField(
+                  label: 'Mobile Number',
                   initialValue: _mobile,
-                  decoration: const InputDecoration(labelText: 'Mobile Number'),
+                  icon: Icons.phone,
+                  onSaved: (value) => _mobile = value,
                   keyboardType: TextInputType.phone,
-                  onSaved: (newValue) {
-                    _mobile = newValue;
-                  },
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
+                // Save Profile Button
                 ElevatedButton(
-                  onPressed: () {
-                    _saveProfileImage(); // Save profile image
-                    _saveProfileInfo(); // Save user info
+                  onPressed: (){
+                      _saveProfileImage();
+                      _saveProfile(); // Call _saveProfile when pressed
                   },
-                  child: const Text('Save Changes'),
-                ),
+                    child: const Text('Save Profile')
+                  ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  // Method to build profile fields with consistent styling
+  Widget _buildProfileField({
+    required String label,
+    required String? initialValue,
+    required IconData icon,
+    required FormFieldSetter<String> onSaved,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      initialValue: initialValue,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      onSaved: onSaved,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your $label';
+        }
+        return null;
+      },
     );
   }
 }

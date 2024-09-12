@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:travel/screens/settings.dart';
 
-import 'edit_profile.dart'; // Import the settings screen
+import 'package:travel/screens/edit_profile.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(bool) toggleTheme; // Function to toggle the theme
@@ -19,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   String userName = '';
   String userEmail = '';
+  String profileImage = '';  // To store the profile image URL
 
   @override
   void initState() {
@@ -37,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         userName = userData['name'];
         userEmail = user.email!;
+        profileImage = userData['profileImage'] ?? ''; // Get the profile image URL
       });
     }
   }
@@ -67,14 +69,25 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             UserAccountsDrawerHeader(
-              accountName: Text(userName),
-              accountEmail: Text(userEmail),
+              accountName: Padding(
+                padding: const EdgeInsets.only(top: 16.0), // Adjust the top margin here
+                child: Text(
+                  userName,
+                  style: TextStyle(fontSize: 29),
+                ),
+              ),
+              accountEmail: Text(''),
               currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
-                child: Text(
+                backgroundImage: profileImage.isNotEmpty
+                    ? NetworkImage(profileImage) // Load image from Firebase
+                    : null, // If there's no profile image, fall back to text avatar
+                child: profileImage.isEmpty
+                    ? Text(
                   userName.isNotEmpty ? userName[0] : '?',
                   style: const TextStyle(fontSize: 40.0),
-                ),
+                )
+                    : null, // If the image exists, don't show the initial text
               ),
             ),
             ListTile(

@@ -10,12 +10,20 @@ class AuthServices {
   // Method to get current user's data
   Future<Map<String, dynamic>?> getUserData() async {
     try {
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
-      return userDoc.data() as Map<String, dynamic>?;
+      String? userId = getCurrentUserId();
+      if (userId != null) {
+        DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
+        return userDoc.data() as Map<String, dynamic>?;
+      }
     } catch (e) {
       print(e);
-      return null;
     }
+    return null;
+  }
+
+  // Method to get the current user ID
+  String? getCurrentUserId() {
+    return _auth.currentUser?.uid;
   }
 
   // SignUp User
@@ -47,30 +55,41 @@ class AuthServices {
     return res;
   }
 
-  // Method to upload profile image
-  Future<void> uploadProfileImage(File image) async {
-    try {
-      final ref = FirebaseStorage.instance.ref().child('profile_images').child(_auth.currentUser!.uid + '.jpg');
-      await ref.putFile(image);
-      final imageUrl = await ref.getDownloadURL();
 
-      // Update Firestore with the image URL
-      await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
-        'profileImageUrl': imageUrl,
-      });
-    } catch (e) {
-      print(e);
-    }
-  }
-
-  // Method to update user profile
   Future<void> updateUserProfile(Map<String, dynamic> userProfile) async {
     try {
-      await _firestore.collection('users').doc(_auth.currentUser!.uid).update(userProfile);
+      // Fetch current user ID
+      String? userId = getCurrentUserId();
+
+      // Check if userId is valid
+      if (userId == null) {
+        print('User not logged in or userId is null.');
+        return;
+      }
+
+      // Check if the document for the user exists
+      DocumentReference userDocRef = _firestore.collection('users').doc(userId);
+      DocumentSnapshot userDoc = await userDocRef.get();
+
+      if (!userDoc.exists) {
+        // Handle case where the user document doesn't exist
+        print('User document does not exist.');
+        return;
+      }
+
+      // Log the userProfile data for debugging
+      print('Updating user profile with: $userProfile');
+
+      // If user document exists, update profile data
+      await userDocRef.update(userProfile);
+      print('User profile updated successfully.');
     } catch (e) {
       print('Error updating user profile: $e');
+      throw ('Failed to update profile: $e');
     }
   }
+
+
 
   // LogIn user
   Future<String> loginUser({
