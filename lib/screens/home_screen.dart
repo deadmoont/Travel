@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:travel/screens/settings.dart';
 
 import 'package:travel/screens/edit_profile.dart';
+import 'package:travel/screens/trip_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(bool) toggleTheme; // Function to toggle the theme
@@ -47,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _widgetOptions = <Widget>[
     const Text('Home'),
     const Text('Fav Section'),
-    const Text('Plus Section'),
+    TripScreen(),
     const Text('Library'),
     const Text('Account'),
   ];
@@ -141,8 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Fav',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            label: 'Plus',
+            icon: Icon(Icons.shopping_bag),
+            label: 'Trips',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.library_books),
