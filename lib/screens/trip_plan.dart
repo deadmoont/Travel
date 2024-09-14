@@ -13,6 +13,44 @@ class TripPlansScreen extends StatefulWidget {
 
 class _TripPlansScreenState extends State<TripPlansScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  String? _userName;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName(); // Fetch user name when the widget is initialized
+  }
+
+  Future<void> _fetchUserName() async {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId != null) {
+      // Get the user's name from Firestore (assuming users collection has name field)
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(userId).get();
+      setState(() {
+        _userName = userDoc['name'] ?? 'Traveler'; // Fallback to 'Traveler' if name is not found
+      });
+    }
+  }
+  Future<void> _fetchTravellers() async {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId != null) {
+      CollectionReference tripTravellersCollection = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('trips')
+          .doc(widget.serialNumber.toString())
+          .collection('travellers');
+
+      QuerySnapshot travellersSnapshot = await tripTravellersCollection.get();
+      setState(() {
+        _travellers = travellersSnapshot.docs
+            .map((doc) => doc['name'] as String)
+            .toList();
+      });
+    }
+  }
 
   void _showAddPlanDialog() {
     final TextEditingController planController = TextEditingController();
@@ -172,6 +210,147 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
     }
   }
 
+  List<String> _travellers = []; // List to store added travellers
+
+  void _showSearchDialog() {
+    final TextEditingController searchController = TextEditingController();
+    List<Map<String, dynamic>> searchResults = [];
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: Text(
+                'Search and Add Traveller',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        labelText: 'Search by Name',
+                        prefixIcon: Icon(Icons.search, color: Colors.teal),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        if (value.isNotEmpty) {
+                          _searchUsersByName(value).then((results) {
+                            setState(() {
+                              searchResults = results;
+                            });
+                          });
+                        } else {
+                          setState(() {
+                            searchResults = [];
+                          });
+                        }
+                      },
+                    ),
+                    SizedBox(height: 12),
+                    // Display search results
+                    Column(
+                      children: searchResults.map((result) {
+                        return ListTile(
+                          title: Text(result['name']),
+                          trailing: IconButton(
+                            icon: Icon(Icons.add, color: Colors.teal),
+                            onPressed: () async {
+                              await _addTravellerToTrip(result['name']);
+                              Navigator.of(context).pop(); // Close dialog
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Cancel', style: TextStyle(color: Colors.red)),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _searchUsersByName(String query) async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('name', isGreaterThanOrEqualTo: query)
+          .where('name', isLessThanOrEqualTo: query + '\uf8ff')
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => {'name': doc['name'], 'id': doc.id})
+          .toList();
+    } catch (e) {
+      print('Error searching users: $e');
+      return [];
+    }
+  }
+
+  Future<void> _addTravellerToTrip(String travellerName) async {
+    try {
+      // Get the current user's ID
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) {
+        print('User not authenticated');
+        return;
+      }
+
+      // Reference to the travellers collection for the current trip
+      CollectionReference tripTravellersCollection = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('trips')
+          .doc(widget.serialNumber.toString())
+          .collection('travellers');
+
+      // Check if the traveller already exists
+      QuerySnapshot existingTraveller = await tripTravellersCollection
+          .where('name', isEqualTo: travellerName)
+          .get();
+
+      if (existingTraveller.docs.isNotEmpty) {
+        print('Traveller already exists');
+        return;
+      }
+
+      // Add traveller to Firestore
+      await tripTravellersCollection.add({
+        'name': travellerName,
+        'addedAt': FieldValue.serverTimestamp(), // Optional: Timestamp for when the traveller was added
+      });
+
+      // Update the state to show the added traveller
+      setState(() {
+        _travellers.add(travellerName);
+      });
+    } catch (e) {
+      print('Error adding traveller: $e');
+    }
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -251,19 +430,25 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(15),
                                     ),
-                                    title: Text('Delete Plan', style: TextStyle(fontSize: 18)),
+                                    title: Text(
+                                      'Delete Plan',
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                     content: Text('Are you sure you want to delete this plan?'),
                                     actions: <Widget>[
                                       TextButton(
-                                        child: Text('Cancel', style: TextStyle(color: Colors.teal)),
+                                        child: Text('Delete', style: TextStyle(color: Colors.red)),
                                         onPressed: () {
+                                          _deletePlan(_plans[index]['id']);
                                           Navigator.of(context).pop();
                                         },
                                       ),
                                       TextButton(
-                                        child: Text('Delete', style: TextStyle(color: Colors.red)),
-                                        onPressed: () async {
-                                          await _deletePlan(_plans[index]['id']!);
+                                        child: Text('Cancel', style: TextStyle(color: Colors.teal)),
+                                        onPressed: () {
                                           Navigator.of(context).pop();
                                         },
                                       ),
@@ -278,6 +463,68 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                     },
                   ),
                 ),
+                SizedBox(height: 20),
+                _userName != null
+                    ? Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 5,
+                        blurRadius: 7,
+                        offset: Offset(0, 3), // changes position of shadow
+                      ),
+                    ],
+                    border: Border.all(color: Colors.teal, width: 2),
+                  ),
+                  padding: EdgeInsets.all(16),
+                  margin: EdgeInsets.only(top: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Travellers:',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      // Display logged-in user name
+                      Text(
+                        _userName!,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      // Display other travelers
+                      ..._travellers.map((traveller) => Text(
+                        traveller,
+                        style: TextStyle(fontSize: 16, color: Colors.black87),
+                      )),
+                      SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: _showSearchDialog,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        ),
+                        child: Text('Add Traveller', style: TextStyle(fontSize: 16)),
+                      ),
+                    ],
+                  ),
+                )
+
+
+                    : SizedBox(),
               ],
             ),
           );
@@ -286,3 +533,4 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
     );
   }
 }
+
