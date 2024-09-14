@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:travel/screens/trip_plan.dart';
 import '../services/auth.dart';
 
 // TripScreen - Displays the user's trips
@@ -37,7 +38,12 @@ class _TripScreenState extends State<TripScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddTripScreen(onTripAdded: _onTripAdded),
+        builder: (context) => AddTripScreen(
+          onTripAdded: _onTripAdded,
+          currentTripCount: _userTrips.length, // Pass the current number of trips
+        ),
+
+
       ),
     );
   }
@@ -63,8 +69,9 @@ class _TripScreenState extends State<TripScreen> {
 
   void _viewTripDetails(Map<String, dynamic> trip) {
     Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => TripDetailScreen(trip: trip)),
+        context,
+        MaterialPageRoute(builder: (context) => TripPlansScreen(serialNumber: trip['serialNumber']),
+    )
     );
   }
 
@@ -113,7 +120,7 @@ class _TripScreenState extends State<TripScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  ' ${trip['startDate']} - ${trip['endDate']}',
+                  ' ${trip['startDate']} - ${trip['endDate']} (SN: ${trip['serialNumber']})', // Display serial number here
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 onTap: () => _viewTripDetails(trip),
@@ -124,10 +131,11 @@ class _TripScreenState extends State<TripScreen> {
       ),
     );
   }
-
 }
 
+
 // TripDetailScreen - Displays details of a selected trip
+// Modify the TripDetailScreen
 class TripDetailScreen extends StatelessWidget {
   final Map<String, dynamic> trip;
 
@@ -139,6 +147,18 @@ class TripDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Trip to ${trip['destination']}'),
         backgroundColor: Colors.teal,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.edit),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => TripPlansScreen(serialNumber: trip['serialNumber']),
+              )
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -154,8 +174,7 @@ class TripDetailScreen extends StatelessWidget {
               children: [
                 Icon(Icons.calendar_today, color: Colors.teal),
                 SizedBox(width: 8),
-                Text('Start Date: ${trip['startDate']}',
-                    style: TextStyle(fontSize: 18)),
+                Text('Start Date: ${trip['startDate']}', style: TextStyle(fontSize: 18)),
               ],
             ),
             SizedBox(height: 10),
@@ -163,8 +182,7 @@ class TripDetailScreen extends StatelessWidget {
               children: [
                 Icon(Icons.calendar_today_outlined, color: Colors.teal),
                 SizedBox(width: 8),
-                Text('End Date: ${trip['endDate']}',
-                    style: TextStyle(fontSize: 18)),
+                Text('End Date: ${trip['endDate']}', style: TextStyle(fontSize: 18)),
               ],
             ),
           ],
@@ -174,11 +192,11 @@ class TripDetailScreen extends StatelessWidget {
   }
 }
 
-// AddTripScreen - Allows the user to add a new trip
 class AddTripScreen extends StatefulWidget {
   final Function(Map<String, dynamic>) onTripAdded;
+  final int currentTripCount; // Add this parameter to pass the current trip count
 
-  AddTripScreen({required this.onTripAdded});
+  AddTripScreen({required this.onTripAdded, required this.currentTripCount});
 
   @override
   _AddTripScreenState createState() => _AddTripScreenState();
@@ -189,6 +207,11 @@ class _AddTripScreenState extends State<AddTripScreen> {
   final _startDateController = TextEditingController();
   final _endDateController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  int _generateSerialNumber() {
+    // Use the length of the current trip array + 1 for serial number
+    return widget.currentTripCount + 1;
+  }
 
   Future<void> _selectDate(TextEditingController controller) async {
     DateTime? picked = await showDatePicker(
@@ -210,6 +233,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
         'destination': _destinationController.text,
         'startDate': _startDateController.text,
         'endDate': _endDateController.text,
+        'serialNumber': _generateSerialNumber(), // Updated serial number logic
       };
 
       widget.onTripAdded(newTrip);
