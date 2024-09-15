@@ -19,6 +19,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
   void initState() {
     super.initState();
     _fetchUserName(); // Fetch user name when the widget is initialized
+    _fetchTravellers(); // Fetch travellers' names when the widget is initialized
   }
 
   Future<void> _fetchUserName() async {
@@ -32,25 +33,25 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
       });
     }
   }
-  Future<void> _fetchTravellers() async {
-    String? userId = FirebaseAuth.instance.currentUser?.uid;
-
-    if (userId != null) {
-      CollectionReference tripTravellersCollection = _firestore
-          .collection('users')
-          .doc(userId)
-          .collection('trips')
-          .doc(widget.serialNumber.toString())
-          .collection('travellers');
-
-      QuerySnapshot travellersSnapshot = await tripTravellersCollection.get();
-      setState(() {
-        _travellers = travellersSnapshot.docs
-            .map((doc) => doc['name'] as String)
-            .toList();
-      });
-    }
-  }
+  // Future<void> _fetchTravellers() async {
+  //   String? userId = FirebaseAuth.instance.currentUser?.uid;
+  //
+  //   if (userId != null) {
+  //     CollectionReference tripTravellersCollection = _firestore
+  //         .collection('users')
+  //         .doc(userId)
+  //         .collection('trips')
+  //         .doc(widget.serialNumber.toString())
+  //         .collection('travellers');
+  //
+  //     QuerySnapshot travellersSnapshot = await tripTravellersCollection.get();
+  //     setState(() {
+  //       _travellers = travellersSnapshot.docs
+  //           .map((doc) => doc['name'] as String)
+  //           .toList();
+  //     });
+  //   }
+  // }
 
   void _showAddPlanDialog() {
     final TextEditingController planController = TextEditingController();
@@ -306,6 +307,48 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
       return [];
     }
   }
+  Future<void> _fetchTravellers() async {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+    if (userId != null) {
+      CollectionReference tripTravellersCollection = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('trips')
+          .doc(widget.serialNumber.toString())
+          .collection('travellers');
+
+      try {
+        QuerySnapshot travellersSnapshot = await tripTravellersCollection.get();
+        print('Fetched travellers snapshot: ${travellersSnapshot.docs.length}');
+        setState(() {
+          _travellers = travellersSnapshot.docs
+              .map((doc) => doc['name'] as String)
+              .toList();
+          print('Travellers names: $_travellers');
+        });
+      } catch (e) {
+        print('Error fetching travellers: $e');
+      }
+    } else {
+      print('User ID is null');
+    }
+  }
+
+
+  Future<List<String>> _fetchUserNames(List<String> uids) async {
+    List<String> names = [];
+
+    for (String uid in uids) {
+      DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        names.add(userDoc['name'] ?? 'Unknown');
+      }
+    }
+
+    return names;
+  }
+
 
   Future<void> _addTravellerToTrip(String travellerName) async {
     try {
@@ -372,11 +415,10 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
           }
 
           List<QueryDocumentSnapshot> planDocs = snapshot.data!.docs;
-
           List<Map<String, dynamic>> _plans = planDocs.map((doc) {
             Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
             return {
-              'id': doc.id, // Include the document ID
+              'id': doc.id,
               'plan': data['plan'].toString(),
               'time': data['time'].toString(),
               'date': data['date'].toString(),
@@ -399,6 +441,8 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                   ),
                   child: Text('Add New Plan', style: TextStyle(fontSize: 16)),
                 ),
+                SizedBox(height: 20),
+
                 SizedBox(height: 20),
                 Expanded(
                   child: ListView.builder(
@@ -474,7 +518,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                         color: Colors.grey.withOpacity(0.5),
                         spreadRadius: 5,
                         blurRadius: 7,
-                        offset: Offset(0, 3), // changes position of shadow
+                        offset: Offset(0, 3),
                       ),
                     ],
                     border: Border.all(color: Colors.teal, width: 2),
@@ -493,7 +537,6 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                         ),
                       ),
                       SizedBox(height: 8),
-                      // Display logged-in user name
                       Text(
                         _userName!,
                         style: TextStyle(
@@ -502,7 +545,6 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                         ),
                       ),
                       SizedBox(height: 12),
-                      // Display other travelers
                       ..._travellers.map((traveller) => Text(
                         traveller,
                         style: TextStyle(fontSize: 16, color: Colors.black87),
@@ -522,8 +564,6 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                     ],
                   ),
                 )
-
-
                     : SizedBox(),
               ],
             ),
@@ -532,5 +572,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
       ),
     );
   }
+
+
 }
 
