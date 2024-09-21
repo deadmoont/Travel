@@ -80,7 +80,7 @@ class _TripScreenState extends State<TripScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Trips'),
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.deepOrange,
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

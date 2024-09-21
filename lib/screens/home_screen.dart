@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.trip_origin),
+            icon: Icon(Icons.card_travel_outlined),
             label: 'Trips',
           ),
           BottomNavigationBarItem(
@@ -233,32 +233,37 @@ class _HomeSectionState extends State<HomeSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.deepOrange, Colors.orange],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+
+          Transform.translate(
+            offset: Offset(0, -16), // Adjust this value to move the container up
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.deepOrange, Colors.orange],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.0)),
               ),
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.0)),
-            ),
-            child: Text(
-              'Explore Your Next Adventure!',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                shadows: [
-                  Shadow(
-                    blurRadius: 10.0,
-                    color: Colors.black.withOpacity(0.5),
-                    offset: Offset(2.0, 2.0),
-                  ),
-                ],
+              child: Text(
+                'Explore Your Next Adventure!',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 10.0,
+                      color: Colors.black.withOpacity(0.5),
+                      offset: Offset(2.0, 2.0),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+
           SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -338,18 +343,12 @@ class _HomeSectionState extends State<HomeSection> {
               const SnackBar(content: Text('Please enable location services to book accommodations.')),
             );
           }
-        }else if (title == 'Discover Dining Options') {
-          // Check if location services are enabled
-          if (await Geolocator.isLocationServiceEnabled()) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => DiningPage()),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Please enable location services to book accommodations.')),
-            );
-          }
+        }
+        if (title == 'Discover Dining Options') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => DinnerScreen()),
+          );
         }
       },
       child: Stack(
