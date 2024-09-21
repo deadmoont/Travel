@@ -6,6 +6,12 @@ import 'package:travel/screens/settings.dart';
 import 'package:travel/screens/edit_profile.dart';
 import 'package:travel/screens/trip_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:geolocator/geolocator.dart';
+
+import 'dinning.dart';
+import 'hotels.dart';
+import 'nearbyattrac.dart';
+
 
 class HomeScreen extends StatefulWidget {
   final Function(bool) toggleTheme; // Function to toggle the theme
@@ -179,147 +185,225 @@ class HomeSection extends StatefulWidget {
 class _HomeSectionState extends State<HomeSection> {
   final PageController _pageController = PageController();
 
+
+  Future<void> _checkLocationPermissionAndNavigate() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location services are disabled. Please enable them to find nearby attractions.')),
+      );
+      return;
+    }
+
+    // Check location permission
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location permissions are denied.')),
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Location permissions are permanently denied.')),
+      );
+      return;
+    }
+
+    // If permissions are granted and location services are enabled, navigate to the NearbyAttractions page
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const NearbyAttractions()),
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.deepOrange, Colors.orange],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.0)),
-          ),
-          child: Text(
-            'Explore Your Next Adventure!',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              shadows: [
-                Shadow(
-                  blurRadius: 10.0,
-                  color: Colors.black.withOpacity(0.5),
-                  offset: Offset(2.0, 2.0),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(height: 16),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Container(
-            height: 220, // Increased height for better visuals
+    return SingleChildScrollView(  // Wrap Column inside SingleChildScrollView
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24.0), // More pronounced curve
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.4),
-                  spreadRadius: 2,
-                  blurRadius: 10,
-                  offset: Offset(0, 6),
-                ),
-              ],
+              gradient: LinearGradient(
+                colors: [Colors.deepOrange, Colors.orange],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.0)),
             ),
-            child: PageView(
+            child: Text(
+              'Explore Your Next Adventure!',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                shadows: [
+                  Shadow(
+                    blurRadius: 10.0,
+                    color: Colors.black.withOpacity(0.5),
+                    offset: Offset(2.0, 2.0),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Container(
+              height: 220, // Increased height for better visuals
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24.0), // More pronounced curve
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.4),
+                    spreadRadius: 2,
+                    blurRadius: 10,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: PageView(
+                controller: _pageController,
+                children: [
+                  _buildPage('Find Nearby Attractions', 'assets/images/attractions.jpg', Colors.teal),
+                  _buildPage('Book Accommodations', 'assets/images/accomodations.jpg', Colors.blue),
+                  _buildPage('Discover Dining Options', 'assets/images/dining.jpg', Colors.red),
+                  _buildPage('Check Upcoming Events', 'assets/images/events.jpg', Colors.purple),
+                  _buildPage('Travel Essentials', 'assets/images/essentials.jpg', Colors.orange),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(height: 16),
+          Center(
+            child: SmoothPageIndicator(
               controller: _pageController,
-              children: [
-                _buildPage('Find Nearby Attractions', 'assets/images/attractions.jpg', Colors.teal),
-                _buildPage('Book Accommodations', 'assets/images/accomodations.jpg', Colors.blue),
-                _buildPage('Discover Dining Options', 'assets/images/dining.jpg', Colors.red),
-                _buildPage('Check Upcoming Events', 'assets/images/events.jpg', Colors.purple),
-                _buildPage('Travel Essentials', 'assets/images/essentials.jpg', Colors.orange),
-              ],
+              count: 5,
+              effect: ExpandingDotsEffect(
+                activeDotColor: Colors.deepOrange,
+                dotColor: Colors.black.withOpacity(0.5),
+                dotHeight: 10, // Slightly larger dot for better visibility
+                dotWidth: 10,
+                spacing: 16,
+              ),
             ),
           ),
-        ),
-        SizedBox(height: 16),
-        Center(
-          child: SmoothPageIndicator(
-            controller: _pageController,
-            count: 5,
-            effect: ExpandingDotsEffect(
-              activeDotColor: Colors.deepOrange,
-              dotColor: Colors.black.withOpacity(0.5),
-              dotHeight: 10, // Slightly larger dot for better visibility
-              dotWidth: 10,
-              spacing: 16,
+          SizedBox(height: 32), // Add spacing between card view and slider
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'Recommended Places',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
           ),
-        ),
-        SizedBox(height: 32), // Add spacing between card view and slider
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            'Recommended Places',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-        ),
-        SizedBox(height: 16),
-        RecommendationSlider(), // Add the RecommendationSlider widget here
-      ],
+          SizedBox(height: 16),
+          RecommendationSlider(),
+          SizedBox(height: 16), // Add the RecommendationSlider widget here
+        ],
+      ),
     );
   }
 
   Widget _buildPage(String title, String imagePath, Color color) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Positioned.fill(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24.0), // Ensure the image follows the border radius
-            child: Image.asset(
-              imagePath,
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.black.withOpacity(0.6), Colors.black.withOpacity(0.3)],
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
+    return GestureDetector(
+      onTap: () async {
+        if (title == 'Find Nearby Attractions') {
+          _checkLocationPermissionAndNavigate();
+        }else if (title == 'Book Accommodations') {
+          // Check if location services are enabled
+          if (await Geolocator.isLocationServiceEnabled()) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Hotels()),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please enable location services to book accommodations.')),
+            );
+          }
+        }else if (title == 'Discover Dining Options') {
+          // Check if location services are enabled
+          if (await Geolocator.isLocationServiceEnabled()) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => DiningPage()),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Please enable location services to book accommodations.')),
+            );
+          }
+        }
+      },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24.0), // Ensure the image follows the border radius
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
               ),
-              borderRadius: BorderRadius.circular(24.0), // Ensure the gradient also follows the border radius
             ),
           ),
-        ),
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-                shadows: [
-                  Shadow(
-                    blurRadius: 6.0,
-                    color: Colors.black.withOpacity(0.7),
-                    offset: Offset(1.0, 1.0),
-                  ),
-                ],
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.black.withOpacity(0.6), Colors.black.withOpacity(0.3)],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                ),
+                borderRadius: BorderRadius.circular(24.0), // Ensure the gradient also follows the border radius
               ),
-              textAlign: TextAlign.center,
             ),
           ),
-        ),
-      ],
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 6.0,
+                      color: Colors.black.withOpacity(0.7),
+                      offset: Offset(1.0, 1.0),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
+
+
 }
 
 

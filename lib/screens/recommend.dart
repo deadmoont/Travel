@@ -32,7 +32,7 @@ class _RecommendationSliderState extends State<RecommendationSlider> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              height: 160, // Adjust height as needed
+              height: 160,
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: places.length,
@@ -41,26 +41,32 @@ class _RecommendationSliderState extends State<RecommendationSlider> {
 
                   String title = place['name'] ?? 'No Title';
                   String description = place['description'] ?? 'No Description';
-                  String imageUrl = place['imageUrl'] ?? 'https://via.placeholder.com/500x160'; // Default image URL
+                  String imageUrl = place['imageUrl'] ?? 'https://via.placeholder.com/500x160';
                   double rating = (place['rating'] is double)
                       ? place['rating'] as double
                       : (place['rating'] is int)
                       ? (place['rating'] as int).toDouble()
                       : 0.0;
 
-                  return GestureDetector(
-                    onTap: () {
-                      _showDescription(context, title, description);
-                    },
-                    child: _buildPage(
-                      title,
-                      imageUrl,
-                      rating,
+                  // Apply a negative offset to shift the elements to the left
+                  return Transform.translate(
+                    offset: Offset(-110.0, 0.0),  // Negative value for left shift
+                    child: GestureDetector(
+                      onTap: () {
+                        _showDescription(context, title, description);
+                      },
+                      child: _buildPage(
+                        title,
+                        imageUrl,
+                        rating,
+                      ),
                     ),
                   );
                 },
               ),
-            ),
+            )
+            ,
+
             SizedBox(height: 16),
             // Removed SmoothPageIndicator as per request
           ],
