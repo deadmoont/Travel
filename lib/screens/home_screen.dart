@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:travel/screens/fav_screen.dart';
 import 'package:travel/screens/recommend.dart';
 import 'package:travel/screens/settings.dart';
 import 'package:travel/screens/edit_profile.dart';
@@ -58,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
     TripScreen(), // Your existing TripScreen remains unchanged
     const Text('Explore Destinations'),
     const Text('Travel Tips'),
-    const Text('Favorites'),
+    FavScreen(),
   ];
 
   void _onItemTapped(int index) {

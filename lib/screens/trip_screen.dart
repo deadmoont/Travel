@@ -67,6 +67,37 @@ class _TripScreenState extends State<TripScreen> {
     }
   }
 
+  void _toggleFavorite(Map<String, dynamic> trip) async {
+    try {
+      // Toggle the favorite status
+      trip['fav'] = !trip['fav'];
+
+      // Get the current user's data
+      Map<String, dynamic>? userData = await _authServices.getUserData();
+
+      if (userData != null) {
+        // Retrieve current trips
+        List<Map<String, dynamic>> trips = List<Map<String, dynamic>>.from(userData['trips'] ?? []);
+
+        // Find the index of the trip to update
+        int tripIndex = trips.indexWhere((t) => t['serialNumber'] == trip['serialNumber']);
+        if (tripIndex != -1) {
+          trips[tripIndex] = trip; // Update the trip with the new fav status
+
+          // Update Firestore
+          await _authServices.updateUserProfile({'trips': trips});
+
+          setState(() {
+            // Update the trips list in the UI
+          });
+        }
+      }
+    } catch (e) {
+      print('Error updating favorite: $e');
+    }
+  }
+
+
   void _viewTripDetails(Map<String, dynamic> trip) {
     Navigator.push(
         context,
@@ -110,18 +141,25 @@ class _TripScreenState extends State<TripScreen> {
               child: ListTile(
                 contentPadding: EdgeInsets.all(16),
                 leading: Image.asset(
-                  'assets/images/trip_photo.jpg', // Display the image from assets
-                  width: 80, // Adjust width as needed
-                  height: 80, // Adjust height as needed
-                  fit: BoxFit.cover, // Adjust the fit to make it look better
+                  'assets/images/trip_photo.jpg',
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
                 ),
                 title: Text(
                   trip['destination'],
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  ' ${trip['startDate']} - ${trip['endDate']} (SN: ${trip['serialNumber']})', // Display serial number here
+                  '${trip['startDate']} - ${trip['endDate']} (SN: ${trip['serialNumber']})',
                   style: TextStyle(color: Colors.grey[600]),
+                ),
+                trailing: IconButton(
+                  icon: Icon(
+                    trip['fav'] ? Icons.favorite : Icons.favorite_border,
+                    color: trip['fav'] ? Colors.red : null,
+                  ),
+                  onPressed: () => _toggleFavorite(trip),
                 ),
                 onTap: () => _viewTripDetails(trip),
               ),
