@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:travel/screens/whether.dart';
 
 class TripPlansScreen extends StatefulWidget {
   final int serialNumber;
@@ -444,69 +445,83 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                 SizedBox(height: 20),
 
                 SizedBox(height: 20),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: _plans.length,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        margin: EdgeInsets.symmetric(vertical: 8),
-                        elevation: 5,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
+            Expanded(
+              child: ListView.builder(
+                itemCount: _plans.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(16),
+                      title: Text(
+                        _plans[index]['plan']!,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
                         ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.all(16),
-                          title: Text(
-                            _plans[index]['plan']!,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                          ),
-                          subtitle: Text(
-                            'Time: ${_plans[index]['time']} | Date: ${_plans[index]['date']} | Venue: ${_plans[index]['venue']}',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    title: Text(
-                                      'Delete Plan',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    content: Text('Are you sure you want to delete this plan?'),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        child: Text('Delete', style: TextStyle(color: Colors.red)),
-                                        onPressed: () {
-                                          _deletePlan(_plans[index]['id']);
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      TextButton(
-                                        child: Text('Cancel', style: TextStyle(color: Colors.teal)),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
+                      ),
+                      subtitle: Text(
+                        'Time: ${_plans[index]['time']} | Date: ${_plans[index]['date']} | Venue: ${_plans[index]['venue']}',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                title: Text(
+                                  'Delete Plan',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                content: Text('Are you sure you want to delete this plan?'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    child: Text('Delete', style: TextStyle(color: Colors.red)),
+                                    onPressed: () {
+                                      _deletePlan(_plans[index]['id']);
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  TextButton(
+                                    child: Text('Cancel', style: TextStyle(color: Colors.teal)),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
                               );
                             },
+                          );
+                        },
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WeatherPage(
+                              venue: _plans[index]['venue']!,
+                              date: _plans[index]['date']!,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
                 SizedBox(height: 20),
                 _userName != null
                     ? Container(
