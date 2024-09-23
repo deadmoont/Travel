@@ -16,7 +16,7 @@ The app provides five main sections, accessible through the navigation bar:
 
 - **Home**: Explore nearby attractions and dining options based on the user's current location.
 - **Trips**: Add trips, mark trips as favorites, and manage plans for each trip.
-- **Explore**: Discover additional travel-related content (can be further expanded).
+- **Explore**: Not done yet
 - **Flights**: Book flights (currently not functional due to API subscription limitations).
 - **Favorites**: View and manage trips that are marked as favorites.
 
@@ -34,7 +34,7 @@ Available through the side menu, it includes:
 - Add, view, and manage trips.
 - Mark trips as **favorites**.
 - Add and view plans within each trip, specifying tasks and times.
-- **Weather Forecast**: Shows the weather forecast for the venue chosen in the plan (better results for venues at the state level).
+- **Weather Forecast**: Shows the weather forecast by clicking in each plan for the venue chosen in the plan (better results for venues at the state level).
 - **Add Travelers**: Add fellow travelers to a trip by searching the app's users (example users: `"tc"` and `"priyam"`). This data is synced with Firebase.
 
 ### Favorites Section
