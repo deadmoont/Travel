@@ -151,7 +151,7 @@ class _TripScreenState extends State<TripScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  '${trip['startDate']} - ${trip['endDate']} (SN: ${trip['serialNumber']})',
+                  '${trip['startDate']} - ${trip['endDate']} ',
                   style: TextStyle(color: Colors.grey[600]),
                 ),
                 trailing: IconButton(
