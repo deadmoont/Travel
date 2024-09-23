@@ -166,7 +166,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('Add Plan', style: TextStyle(color: Colors.teal)),
+              child: Text('Add Plan', style: TextStyle(color: Colors.deepOrange)),
               onPressed: () async {
                 if (planController.text.isNotEmpty &&
                     timeController.text.isNotEmpty &&
@@ -200,13 +200,13 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
       readOnly: isTime || isDate,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Colors.teal),
+        prefixIcon: Icon(icon, color: Colors.deepOrange),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         suffixIcon: isTime || isDate
             ? IconButton(
-          icon: Icon(Icons.arrow_drop_down, color: Colors.teal),
+          icon: Icon(Icons.arrow_drop_down, color: Colors.deepOrange),
           onPressed: () {
             if (isTime) {
               _selectTime(context, controller);
@@ -318,7 +318,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                       controller: searchController,
                       decoration: InputDecoration(
                         labelText: 'Search by Name',
-                        prefixIcon: Icon(Icons.search, color: Colors.teal),
+                        prefixIcon: Icon(Icons.search, color: Colors.deepOrange),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -344,7 +344,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                         return ListTile(
                           title: Text(result['name']),
                           trailing: IconButton(
-                            icon: Icon(Icons.add, color: Colors.teal),
+                            icon: Icon(Icons.add, color: Colors.deepOrange),
                             onPressed: () async {
                               await _addTravellerToTrip(result['name']);
                               Navigator.of(context).pop(); // Close dialog
@@ -479,7 +479,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Plans for Trip ${widget.serialNumber}'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.deepOrange,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
@@ -513,7 +513,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                 ElevatedButton(
                   onPressed: _showAddPlanDialog,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
+                    backgroundColor: Colors.deepOrange,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -586,7 +586,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                                     },
                                   ),
                                   TextButton(
-                                    child: Text('Cancel', style: TextStyle(color: Colors.teal)),
+                                    child: Text('Cancel', style: TextStyle(color: Colors.deepOrange)),
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
@@ -639,7 +639,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.teal,
+                          color: Colors.deepOrange,
                         ),
                       ),
                       SizedBox(height: 8),
@@ -659,7 +659,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                       ElevatedButton(
                         onPressed: _showSearchDialog,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
+                          backgroundColor: Colors.deepOrange,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

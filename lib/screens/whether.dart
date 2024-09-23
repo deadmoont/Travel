@@ -50,7 +50,7 @@ class _WeatherPageState extends State<WeatherPage> {
       SnackBar(
         content: Text(message),
         duration: Duration(seconds: 5),
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.orange,
       ),
     );
   }
@@ -66,7 +66,7 @@ class _WeatherPageState extends State<WeatherPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Weather for ${widget.venue}'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.orange,
       ),
       body: weatherData == null
           ? Center(child: CircularProgressIndicator())

@@ -128,7 +128,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.deepOrange,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator()) // Show loading indicator
@@ -161,7 +161,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         onTap: _pickImage, // Allow user to tap and select an image
                         child: CircleAvatar(
                           radius: 20,
-                          backgroundColor: Colors.blueAccent, // Edit button style
+                          backgroundColor: Colors.deepOrange, // Edit button style
                           child: const Icon(Icons.camera_alt, color: Colors.white),
                         ),
                       ),
@@ -231,7 +231,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        prefixIcon: Icon(icon, color: Colors.deepOrange),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),

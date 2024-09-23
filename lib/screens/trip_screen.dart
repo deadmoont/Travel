@@ -184,7 +184,7 @@ class TripDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Trip to ${trip['destination']}'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.orange,
         actions: [
           IconButton(
             icon: Icon(Icons.edit),
@@ -210,7 +210,7 @@ class TripDetailScreen extends StatelessWidget {
             SizedBox(height: 10),
             Row(
               children: [
-                Icon(Icons.calendar_today, color: Colors.teal),
+                Icon(Icons.calendar_today, color: Colors.orange),
                 SizedBox(width: 8),
                 Text('Start Date: ${trip['startDate']}', style: TextStyle(fontSize: 18)),
               ],
@@ -218,7 +218,7 @@ class TripDetailScreen extends StatelessWidget {
             SizedBox(height: 10),
             Row(
               children: [
-                Icon(Icons.calendar_today_outlined, color: Colors.teal),
+                Icon(Icons.calendar_today_outlined, color: Colors.orange),
                 SizedBox(width: 8),
                 Text('End Date: ${trip['endDate']}', style: TextStyle(fontSize: 18)),
               ],
@@ -284,7 +284,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add New Trip'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.orange,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -349,7 +349,7 @@ class _AddTripScreenState extends State<AddTripScreen> {
               ElevatedButton(
                 onPressed: _saveTrip,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
+                  backgroundColor: Colors.orange,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
