@@ -10,6 +10,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'dinning.dart';
+import 'flight.dart';
 import 'hotels.dart';
 import 'nearbyattrac.dart';
 
@@ -58,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const HomeSection(),
     TripScreen(), // Your existing TripScreen remains unchanged
     const Text('Explore Destinations'),
-    const Text('Travel Tips'),
+    FlightScreen(),
     FavScreen(),
   ];
 
@@ -157,8 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Explore',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.lightbulb_outline),
-            label: 'Tips',
+            icon: Icon(Icons.flight),
+            label: 'Flight',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),

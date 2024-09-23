@@ -2,6 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:travel/screens/whether.dart';
+import 'package:excel/excel.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class TripPlansScreen extends StatefulWidget {
   final int serialNumber;
@@ -53,6 +56,82 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
   //     });
   //   }
   // }
+
+  Future<void> _exportToExcel() async {
+    try {
+      var excel = Excel.createExcel();
+      Sheet sheet = excel['Plans'];
+
+      // Add header
+      // sheet.appendRow(['Plan', 'Time', 'Date', 'Venue']);
+
+      // Fetch plans from Firestore
+      String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+      if (userId != null) {
+        CollectionReference plansCollection = _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('trips')
+            .doc(widget.serialNumber.toString())
+            .collection('plans');
+
+        QuerySnapshot plansSnapshot = await plansCollection.get();
+        if (plansSnapshot.docs.isEmpty) {
+          print("No plans found.");
+        }
+
+        for (var doc in plansSnapshot.docs) {
+          var data = doc.data() as Map<String, dynamic>;
+          print("Fetched data: $data");
+
+          sheet.appendRow([
+            data['plan'] is String ? data['plan'] : 'N/A',
+            data['time'] is String ? data['time'] : 'N/A',
+            data['date'] is String ? data['date'] : 'N/A',
+            data['venue'] is String ? data['venue'] : 'N/A',
+          ]);
+        }
+      } else {
+        print("User not authenticated.");
+      }
+
+      // Save the Excel file
+      Directory? directory = await getExternalStorageDirectory();
+      if (directory != null) {
+        String filePath = '${directory.path}/Trip_Plan_${widget.serialNumber}.xlsx';
+        var file = File(filePath);
+
+        var bytes = excel.encode();
+        if (bytes != null) {
+          await file.writeAsBytes(bytes);
+          print("File saved at: $filePath");
+
+          // Notify the user
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Exported to Excel at $filePath')),
+          );
+        } else {
+          print("Error: Excel encoding returned null.");
+        }
+      } else {
+        print("Error: Failed to get the directory for saving the file.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to get the directory for saving the file')),
+        );
+      }
+    } catch (e) {
+      print("Error exporting to Excel: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error exporting to Excel: $e')),
+      );
+    }
+  }
+
+
+
+
+
 
   void _showAddPlanDialog() {
     final TextEditingController planController = TextEditingController();
@@ -442,6 +521,18 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                   ),
                   child: Text('Add New Plan', style: TextStyle(fontSize: 16)),
                 ),
+                // ElevatedButton(
+                //   onPressed: _exportToExcel,
+                //   style: ElevatedButton.styleFrom(
+                //     backgroundColor: Colors.teal,
+                //     shape: RoundedRectangleBorder(
+                //       borderRadius: BorderRadius.circular(12),
+                //     ),
+                //     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                //   ),
+                //   child: Text('Export to Excel', style: TextStyle(fontSize: 16)),
+                // ),
+
                 SizedBox(height: 20),
 
                 SizedBox(height: 20),
@@ -536,7 +627,7 @@ class _TripPlansScreenState extends State<TripPlansScreen> {
                         offset: Offset(0, 3),
                       ),
                     ],
-                    border: Border.all(color: Colors.teal, width: 2),
+                    // border: Border.all(color: Colors.teal, width: 2), // This should work
                   ),
                   padding: EdgeInsets.all(16),
                   margin: EdgeInsets.only(top: 20),

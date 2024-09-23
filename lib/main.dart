@@ -4,13 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:travel/screens/home_screen.dart';
 import 'package:travel/screens/loginscreen.dart';
+import 'api/notif_api.dart';
 import 'firebase_options.dart';
+
+final navigatorkey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     // options: DefaultFirebaseOptions.currentPlatform,
   );
+  await FirebaseApi().initNotifications();
   runApp(const MyApp());
 }
 
